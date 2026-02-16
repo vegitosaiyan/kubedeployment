@@ -1,15 +1,10 @@
 pipeline {
     agent any
 
-    environment {
-        APP_NAME = 'kubedeploy-app'
-        APP_VERSION = "${BUILD_NUMBER}"
-    }
-
     stages {
         stage('Checkout') {
             steps {
-                echo 'Code already checked out'
+                checkout scm
             }
         }
 
@@ -21,21 +16,22 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh "docker build -f infra/Dockerfile -t ${APP_NAME}:${APP_VERSION} ."
-                sh "docker tag ${APP_NAME}:${APP_VERSION} ${APP_NAME}:latest"
+                script {
+                    sh 'docker build -t myapp:${BUILD_NUMBER} .'
+                }
             }
         }
 
-        stage('List Images') {
+        stage('Deploy to Kubernetes') {
             steps {
-                sh 'docker images | grep kubedeploy-app'
+                sh 'kubectl apply -f k8s-deployment.yaml'
             }
         }
     }
 
     post {
         success {
-            echo 'Pipeline completed successfully!'
+            echo 'Pipeline succeeded!'
         }
         failure {
             echo 'Pipeline failed!'
