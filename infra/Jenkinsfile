@@ -1,0 +1,44 @@
+pipeline {
+    agent any
+
+    environment {
+        APP_NAME = 'kubedeploy-app'
+        APP_VERSION = "${BUILD_NUMBER}"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                echo 'Code already checked out'
+            }
+        }
+
+        stage('Build with Maven') {
+            steps {
+                sh 'mvn clean package -DskipTests'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                sh "docker build -f infra/Dockerfile -t ${APP_NAME}:${APP_VERSION} ."
+                sh "docker tag ${APP_NAME}:${APP_VERSION} ${APP_NAME}:latest"
+            }
+        }
+
+        stage('List Images') {
+            steps {
+                sh 'docker images | grep kubedeploy-app'
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Pipeline completed successfully!'
+        }
+        failure {
+            echo 'Pipeline failed!'
+        }
+    }
+}
