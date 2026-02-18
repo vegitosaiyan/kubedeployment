@@ -29,7 +29,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    sh 'docker build -t myapp:${BUILD_NUMBER} .'
+                    sh 'docker build -f infra/Dockerfile -t myapp:${BUILD_NUMBER} .'
                 }
             }
         }
